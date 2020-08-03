@@ -1,6 +1,10 @@
 # sasquatch
 
-A simple file encryption library, heavily inspired by @Benjojo12 and
+[![Build Status](https://github.com/muesli/sasquatch/workflows/build/badge.svg)](https://github.com/muesli/sasquatch/actions)
+[![GoDoc](https://godoc.org/github.com/golang/gddo?status.svg)](https://godoc.org/github.com/muesli/sasquatch)
+[![Go ReportCard](http://goreportcard.com/badge/muesli/sasquatch)](http://goreportcard.com/report/muesli/sasquatch)
+
+A simple data encryption library, heavily inspired by @Benjojo12 and
 @FiloSottile's fantastic age project.
 
 ## Features
