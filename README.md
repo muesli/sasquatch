@@ -4,8 +4,8 @@
 [![GoDoc](https://godoc.org/github.com/golang/gddo?status.svg)](https://godoc.org/github.com/muesli/sasquatch)
 [![Go ReportCard](http://goreportcard.com/badge/muesli/sasquatch)](http://goreportcard.com/report/muesli/sasquatch)
 
-A simple data encryption library, heavily inspired by @Benjojo12 and
-@FiloSottile's fantastic age project.
+A simple data encryption library, heavily inspired by [@Benjojo12](https://github.com/benjojo) and
+[@FiloSottile](https://github.com/FiloSottile)'s fantastic [age](https://github.com/FiloSottile/age) project.
 
 ## Features
 
