@@ -28,7 +28,7 @@ func FindRecipients() []Recipient {
 		// fmt.Println("parsing", key)
 		c, err := ioutil.ReadFile(key)
 		if err != nil {
-			fmt.Println(err)
+			// fmt.Println(err)
 			continue
 		}
 
