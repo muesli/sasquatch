@@ -62,13 +62,18 @@ func TestRecipientFromPubKey(t *testing.T) {
 func TestSSHEncrypt(t *testing.T) {
 	buf := bytes.NewBuffer(nil)
 
-	r := FindRecipients()
-	if len(r) == 0 {
-		t.Fatal("no recipients found")
+	key, _ := homedir.Expand("~/.ssh/id_rsa.pub")
+	c, err := ioutil.ReadFile(key)
+	if err != nil {
+		t.Fatal(err)
 	}
-	// fmt.Printf("found %d recipients\n", len(r))
 
-	w, err := Encrypt(buf, r...)
+	r, err := ParseRecipient(string(c))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	w, err := Encrypt(buf, r)
 	if err != nil {
 		t.Fatal(err)
 	}
