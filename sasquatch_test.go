@@ -80,7 +80,7 @@ func TestRecipientFromPubKey(t *testing.T) {
 	}
 }
 
-func TestSSHEncrypt(t *testing.T) {
+func TestSSHRSAEncrypt(t *testing.T) {
 	buf := bytes.NewBuffer(nil)
 
 	key, _ := homedir.Expand("~/.ssh/id_rsa.pub")
@@ -110,6 +110,49 @@ func TestSSHEncrypt(t *testing.T) {
 	}
 
 	// _ = ioutil.WriteFile("/tmp/sasquatch.crypted.rsa", buf.Bytes(), 0644)
+
+	ids := FindIdentities()
+	dr, err := Decrypt(buf, ids...)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	dbuf, _ := ioutil.ReadAll(dr)
+	if !bytes.Equal(dbuf, data) {
+		t.Fatalf("Decrypted data does not match!")
+	}
+}
+
+func TestSSHEd25519Encrypt(t *testing.T) {
+	buf := bytes.NewBuffer(nil)
+
+	key, _ := homedir.Expand("~/.ssh/id_ed25519.pub")
+	c, err := ioutil.ReadFile(key)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	r, err := ParseRecipient(string(c))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	w, err := Encrypt(buf, r)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	data := []byte("Hello World!")
+	_, err = w.Write(data)
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = w.Close()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// _ = ioutil.WriteFile("/tmp/sasquatch.crypted.ed25519", buf.Bytes(), 0644)
 
 	ids := FindIdentities()
 	dr, err := Decrypt(buf, ids...)
