@@ -27,7 +27,7 @@ func TestFindSSHAgentSigners(t *testing.T) {
 	}
 
 	if len(signers) == 0 {
-		// t.Fatal("no signers found")
+		t.Fatal("no signers found")
 	}
 
 	/*
@@ -36,6 +36,22 @@ func TestFindSSHAgentSigners(t *testing.T) {
 			fmt.Println(s)
 		}
 	*/
+}
+
+func TestFindRecipients(t *testing.T) {
+	rcp := FindRecipients()
+
+	if len(rcp) == 0 {
+		t.Fatal("no recipients found")
+	}
+}
+
+func TestFindIdentities(t *testing.T) {
+	identities := FindIdentities()
+
+	if len(identities) == 0 {
+		t.Fatal("no identities found")
+	}
 }
 
 func TestIdentityFromFile(t *testing.T) {
