@@ -31,8 +31,8 @@ buf := bytes.NewBuffer(nil)
 alice, err := sasquatch.ParseRecipient("ssh-ed25519 ...")
 bob, err := sasquatch.ParseRecipient("ssh-rsa ...")
 
-r := []sasquatch.Recipient{alice, bob}
-w, err := sasquatch.Encrypt(buf, r...)
+rcp := []sasquatch.Recipient{alice, bob}
+w, err := sasquatch.Encrypt(buf, rcp...)
 
 data := []byte("Hello Alice, Hey Bob!")
 w.Write(data)
