@@ -50,14 +50,10 @@ func TestIdentityFromFile(t *testing.T) {
 	}
 }
 
-func TestRecipientFromFile(t *testing.T) {
-	key, _ := homedir.Expand("~/.ssh/id_rsa.pub")
-	c, err := ioutil.ReadFile(key)
-	if err != nil {
-		t.Fatal(err)
-	}
+func TestRecipientFromPubKey(t *testing.T) {
+	pubkey := `ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQCnpGXlDvHC7YbQTBhxYnQVFlPjhG9NJzJA+DvucLjyEhoFZT7FRd1Zpy1vX3asswolBW+BkfI7y0opamhWoJbUKZFXsQnymfLknqMZ10FcXBpkbGj/wE9NdDu36CORb9W9mItwhqrIY5eAhktMmVnqaq3bqRW08y8BiTzbt17ulxr81/OFymKPnX5qKfGErKXkT8L8umuGcNknpumyDHvxDHWQ8El4KmLDHFb7UsZxY272dMuFXXGVCN90V5aEzXNklPhkHcQnaCvGhPmBwQBCjaBYc+0oQFLO7+s1mXkS92pt4hiX1Srui+VYtTN6Laqcu/HIwFjKC65EmNCW/6t9XzP+lZbu9U5gRPLS3tDEUkp5j3yMyM/E28fdsGvYnb8Fyj7ifV6fCcWvCkEfj+vDK4iJn9NmkPfsQvt4Hi4p5voPyCZw6PvCyQZW1jpIDDBBtGZxOxAn9aVQicJ34ZIusbCgygLonkgZ/C67Kd9ewIsNLGYjtKvo8k6l6vqWjqt5HmQCIT6SPMEhlh9hitcLbUh7EvcpqfMpClSpEDwnbh7k1g4Izv073ky16ACT0IA2ocGXnZGcjUYNiPhYry4hzajSTCveJJrOWi0j13BSSZJa9j0EsVSGHzln+H/Oz8V4QqOOnlw8Kuud9FPnOgA6e7+jRAk3aSpulNosUtsMUw==`
 
-	_, err = ParseRecipient(string(c))
+	_, err := ParseRecipient(pubkey)
 	if err != nil {
 		t.Fatal(err)
 	}
