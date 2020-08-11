@@ -122,8 +122,12 @@ func parseIdentity(pemBytes []byte) (Identity, error) {
 	}
 
 	switch k := k.(type) {
+	case ed25519.PrivateKey:
+		return NewEd25519Identity(k)
 	case *ed25519.PrivateKey:
 		return NewEd25519Identity(*k)
+	case rsa.PrivateKey:
+		return NewRSAIdentity(&k)
 	case *rsa.PrivateKey:
 		return NewRSAIdentity(k)
 	}
