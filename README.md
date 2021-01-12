@@ -18,7 +18,7 @@ A simple data encryption library, heavily inspired by [@Benjojo12](https://githu
 
 - [x] ssh-rsa
 - [x] ssh-ed25519
-- [x] ssh-agent signing challenge
+- [x] ssh-agent signing challenge (excluding ECDSA identities, as ECDSA signatures aren't deterministic)
 - [x] scrypt / password
 
 ## Example
