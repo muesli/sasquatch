@@ -1,8 +1,7 @@
-name: coverage
-on: [push, pull_request]
-
+name: build
+on: [push]
 jobs:
-  coverage:
+  test:
     strategy:
       matrix:
         go-version: [^1]
@@ -12,17 +11,39 @@ jobs:
       GO111MODULE: "on"
     steps:
       - name: Install Go
-        uses: actions/setup-go@v2
+        uses: actions/setup-go@v1
         with:
           go-version: ${{ matrix.go-version }}
 
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v1
 
-      - name: Coverage
-        env:
-          COVERALLS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Download Go modules
+        run: go mod download
+
+      - name: Install SSH RSA key
+        uses: shimataro/ssh-key-action@v2
+        with:
+          key: ${{ secrets.SSH_RSA_PRIVATE_KEY }}
+          name: id_rsa
+          known_hosts: github.com ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAq2A7hRGmdnm9tUDbO9IDSwBK6TbQa+PXYPCPy6rbTrTtw7PHkccKrpp0yVhp5HdEIcKr6pLlVDBfOLX9QUsyCOV0wzfjIJNlGEYsdlLJizHhbn2mUjvSAHQqZETYP81eFzLQNnPHt4EVVUh7VfDESU84KezmD5QlWpXLmvU31/yMf+Se8xhHTvKSCZIFImWwoG6mbUoWf9nzpIoaSjB+weqqUUmpaaasXVal72J+UX2B+2RPW3RcT0eOzQgqlJL3RKrTJvdsjE3JEAvGq3lGHSZXy28G3skua2SmVi/w4yCE6gbODqnTWlg7+wC604ydGXA8VJiS5ap43JXiUFFAaQ==
+
+      - name: Install SSH ed25519 key
+        uses: shimataro/ssh-key-action@v2
+        with:
+          key: ${{ secrets.SSH_ED25519_PRIVATE_KEY }}
+          name: id_ed25519
+          known_hosts: github.com ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAq2A7hRGmdnm9tUDbO9IDSwBK6TbQa+PXYPCPy6rbTrTtw7PHkccKrpp0yVhp5HdEIcKr6pLlVDBfOLX9QUsyCOV0wzfjIJNlGEYsdlLJizHhbn2mUjvSAHQqZETYP81eFzLQNnPHt4EVVUh7VfDESU84KezmD5QlWpXLmvU31/yMf+Se8xhHTvKSCZIFImWwoG6mbUoWf9nzpIoaSjB+weqqUUmpaaasXVal72J+UX2B+2RPW3RcT0eOzQgqlJL3RKrTJvdsjE3JEAvGq3lGHSZXy28G3skua2SmVi/w4yCE6gbODqnTWlg7+wC604ydGXA8VJiS5ap43JXiUFFAaQ==
+
+      - name: Install SSH pubkeys
         run: |
-          go test -race -covermode atomic -coverprofile=profile.cov ./...
-          GO111MODULE=off go get github.com/mattn/goveralls
-          $(go env GOPATH)/bin/goveralls -coverprofile=profile.cov -service=github
+          echo ${{ secrets.SSH_RSA_PUBLIC_KEY }} > ~/.ssh/id_rsa.pub
+          echo ${{ secrets.SSH_ED25519_PUBLIC_KEY }} > ~/.ssh/id_ed25519.pub
+
+      - name: Install SSH agent
+        uses: webfactory/ssh-agent@v0.4.1
+        with:
+          ssh-private-key: ${{ secrets.SSH_ED25519_PRIVATE_KEY }}
+
+      - name: Test
+        run: go test -v ./...
