@@ -2,7 +2,7 @@
 
 [![Build Status](https://github.com/muesli/sasquatch/workflows/build/badge.svg)](https://github.com/muesli/sasquatch/actions)
 [![Coverage Status](https://coveralls.io/repos/github/muesli/sasquatch/badge.svg?branch=master)](https://coveralls.io/github/muesli/sasquatch?branch=master)
-[![Go ReportCard](http://goreportcard.com/badge/muesli/sasquatch)](http://goreportcard.com/report/muesli/sasquatch)
+[![Go ReportCard](https://goreportcard.com/badge/muesli/sasquatch)](https://goreportcard.com/report/muesli/sasquatch)
 [![GoDoc](https://godoc.org/github.com/golang/gddo?status.svg)](https://godoc.org/github.com/muesli/sasquatch)
 
 A simple data encryption library, heavily inspired by [@Benjojo12](https://github.com/benjojo) and
