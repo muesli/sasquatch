@@ -28,6 +28,7 @@ var EncodeToString = b64.EncodeToString
 type Header struct {
 	Recipients []*Stanza
 	MAC        []byte
+	Metadata   []byte
 }
 
 const ColumnsPerLine = 64
@@ -71,9 +72,11 @@ func (w *newlineWriter) Write(p []byte) (n int, err error) {
 const intro = "charm.sh/v1\n"
 
 var recipientPrefix = []byte("->")
+var metadataPrefix = []byte("+>")
 var footerPrefix = []byte("---")
 
 func (r *Stanza) Marshal(w io.Writer) error {
+	// recipients
 	if _, err := w.Write(recipientPrefix); err != nil {
 		return err
 	}
@@ -85,6 +88,8 @@ func (r *Stanza) Marshal(w io.Writer) error {
 	if _, err := io.WriteString(w, "\n"); err != nil {
 		return err
 	}
+
+	// body
 	if len(r.Body) == 0 {
 		return nil
 	}
@@ -103,11 +108,23 @@ func (h *Header) MarshalWithoutMAC(w io.Writer) error {
 	if _, err := io.WriteString(w, intro); err != nil {
 		return err
 	}
+
+	// metadata
+	if len(h.Metadata) > 0 {
+		if _, err := w.Write(metadataPrefix); err != nil {
+			return err
+		}
+		if _, err := io.WriteString(w, " "+b64.EncodeToString(h.Metadata)+"\n"); err != nil {
+			return err
+		}
+	}
+
 	for _, r := range h.Recipients {
 		if err := r.Marshal(w); err != nil {
 			return err
 		}
 	}
+
 	_, err := fmt.Fprintf(w, "%s", footerPrefix)
 	return err
 }
@@ -177,6 +194,16 @@ func Parse(input io.Reader) (*Header, io.Reader, error) {
 			r.Type = args[0]
 			r.Args = args[1:]
 			h.Recipients = append(h.Recipients, r)
+
+		} else if bytes.HasPrefix(line, metadataPrefix) {
+			prefix, args := splitArgs(line)
+			if prefix != string(metadataPrefix) || len(args) != 1 {
+				return nil, nil, errorf("malformed metadata: %q", line)
+			}
+			h.Metadata, err = DecodeString(args[0])
+			if err != nil {
+				return nil, nil, errorf("malformed metadata %q: %v", line, err)
+			}
 
 		} else if r != nil {
 			b, err := DecodeString(strings.TrimSuffix(string(line), "\n"))

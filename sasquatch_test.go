@@ -2,6 +2,7 @@ package sasquatch
 
 import (
 	"bytes"
+	"io"
 	"io/ioutil"
 	"testing"
 
@@ -239,6 +240,59 @@ func TestScryptEncrypt(t *testing.T) {
 	dr, err := Decrypt(buf, id)
 	if err != nil {
 		t.Fatal(err)
+	}
+
+	dbuf, _ := ioutil.ReadAll(dr)
+	if !bytes.Equal(dbuf, data) {
+		t.Fatalf("Decrypted data does not match!")
+	}
+}
+
+func TestEncryptWithMetadata(t *testing.T) {
+	buf := bytes.NewBuffer(nil)
+
+	r, err := NewScryptRecipient("password")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	meta := []byte("metadata")
+	w, err := EncryptWithMetadata(buf, meta, r)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	data := []byte("Hello World!")
+	_, err = w.Write(data)
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = w.Close()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	var mdBuf bytes.Buffer
+	tee := io.TeeReader(buf, &mdBuf)
+
+	metadata, err := Metadata(tee)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !bytes.Equal(meta, metadata) {
+		t.Fatalf("Metadata does not match!")
+	}
+
+	id, err := NewScryptIdentity("password")
+	if err != nil {
+		t.Fatal(err)
+	}
+	dr, metadata, err := DecryptWithMetadata(&mdBuf, id)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !bytes.Equal(meta, metadata) {
+		t.Fatalf("Metadata does not match!")
 	}
 
 	dbuf, _ := ioutil.ReadAll(dr)

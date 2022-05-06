@@ -78,3 +78,16 @@ sasquatch.Encrypt(buf, rcp)
 id, err := sasquatch.NewScryptIdentity("password")
 r, err := sasquatch.Decrypt(buf, id)
 ```
+
+### Optional Metadata
+
+```go
+// add optional metadata
+sasquatch.EncryptWithMetadata(buf, []byte("Some metadata"), rcp)
+
+// retrieve metadata
+metadata, err := sasquatch.Metadata(buf)
+
+// decrypt with metadata
+r, metadata, err := sasquatch.DecryptWithMetadata(buf, id)
+```

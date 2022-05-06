@@ -28,6 +28,12 @@ type Stanza struct {
 // The caller must call Close on the returned value when done for the last chunk
 // to be encrypted and flushed to dst.
 func Encrypt(dst io.Writer, recipients ...Recipient) (io.WriteCloser, error) {
+	return EncryptWithMetadata(dst, nil, recipients...)
+}
+
+// EncryptWithMetadata behaves like Encrypt, but additionally stores unencrypted
+// metadata.
+func EncryptWithMetadata(dst io.Writer, metadata []byte, recipients ...Recipient) (io.WriteCloser, error) {
 	if len(recipients) == 0 {
 		return nil, errors.New("no recipients specified")
 	}
@@ -37,7 +43,9 @@ func Encrypt(dst io.Writer, recipients ...Recipient) (io.WriteCloser, error) {
 		return nil, err
 	}
 
-	hdr := &Header{}
+	hdr := &Header{
+		Metadata: metadata,
+	}
 	for i, r := range recipients {
 		if r.Type() == "scrypt" && len(recipients) != 1 {
 			return nil, errors.New("an scrypt recipient must be the only one")
@@ -72,23 +80,30 @@ func Encrypt(dst io.Writer, recipients ...Recipient) (io.WriteCloser, error) {
 // Decrypt returns a Reader reading the decrypted plaintext of the encrypted file read
 // from src. All identities will be tried until one successfully decrypts the file.
 func Decrypt(src io.Reader, identities ...Identity) (io.Reader, error) {
+	r, _, err := DecryptWithMetadata(src, identities...)
+	return r, err
+}
+
+// Decrypt returns a Reader reading the decrypted plaintext of the encrypted file read
+// from src. All identities will be tried until one successfully decrypts the file.
+func DecryptWithMetadata(src io.Reader, identities ...Identity) (io.Reader, []byte, error) {
 	if len(identities) == 0 {
-		return nil, errors.New("no identities specified")
+		return nil, nil, errors.New("no identities specified")
 	}
 
 	hdr, payload, err := Parse(src)
 	if err != nil {
-		return nil, fmt.Errorf("failed to read header: %v", err)
+		return nil, nil, fmt.Errorf("failed to read header: %v", err)
 	}
 	if len(hdr.Recipients) > 20 {
-		return nil, errors.New("too many recipients")
+		return nil, nil, errors.New("too many recipients")
 	}
 
 	var fileKey []byte
 RecipientsLoop:
 	for _, r := range hdr.Recipients {
 		if r.Type == "scrypt" && len(hdr.Recipients) != 1 {
-			return nil, errors.New("an scrypt recipient must be the only one")
+			return nil, nil, errors.New("an scrypt recipient must be the only one")
 		}
 
 		for _, i := range identities {
@@ -102,7 +117,7 @@ RecipientsLoop:
 					if err == ErrIncorrectIdentity {
 						continue
 					}
-					return nil, err
+					return nil, nil, err
 				}
 			}
 
@@ -114,28 +129,38 @@ RecipientsLoop:
 					// ErrIncorrectIdentity into an interface or wrapper error.
 					continue
 				}
-				return nil, err
+				return nil, nil, err
 			}
 
 			break RecipientsLoop
 		}
 	}
 	if fileKey == nil {
-		return nil, errors.New("no identity matched a recipient")
+		return nil, nil, errors.New("no identity matched a recipient")
 	}
 
 	if mac, err := headerMAC(fileKey, hdr); err != nil {
-		return nil, fmt.Errorf("failed to compute header MAC: %v", err)
+		return nil, nil, fmt.Errorf("failed to compute header MAC: %v", err)
 	} else if !hmac.Equal(mac, hdr.MAC) {
-		return nil, errors.New("bad header MAC")
+		return nil, nil, errors.New("bad header MAC")
 	}
 
 	nonce := make([]byte, 16)
 	if _, err := io.ReadFull(payload, nonce); err != nil {
-		return nil, fmt.Errorf("failed to read nonce: %v", err)
+		return nil, nil, fmt.Errorf("failed to read nonce: %v", err)
 	}
 
-	return stream.NewReader(streamKey(fileKey, nonce), payload)
+	r, err := stream.NewReader(streamKey(fileKey, nonce), payload)
+	return r, hdr.Metadata, err
+}
+
+func Metadata(src io.Reader) ([]byte, error) {
+	hdr, _, err := Parse(src)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read header: %v", err)
+	}
+
+	return hdr.Metadata, nil
 }
 
 func readPassphrase() ([]byte, error) {
