@@ -44,7 +44,7 @@ jobs:
         if: matrix.os != 'windows-latest'
 
       - name: Install SSH agent
-        uses: webfactory/ssh-agent@v0.5.4
+        uses: webfactory/ssh-agent@v0.7.0
         with:
           ssh-private-key: ${{ secrets.SSH_ED25519_PRIVATE_KEY }}
         if: matrix.os != 'windows-latest'
